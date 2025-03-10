@@ -7,7 +7,9 @@ Problem Statement
 We observed high failure rates at both stations:
 
 Station 120: 80% “Not OK” rate
+
 Station 160: 70% “Not OK” rate
+
 Failures at Station 120 often carried over to Station 160, causing further problems with battery placement and connector installation.
 
 Approach
