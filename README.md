@@ -1,6 +1,4 @@
-Below is a README file in English for the Volta project that captures the key elements from your presentation. Feel free to adjust any details to better match your project specifics.
 
----
 
 # Volta – Powering Up Your Data
 
