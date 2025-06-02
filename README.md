@@ -4,97 +4,126 @@
 ![Captura3](./Captura3.gif)
 ![Captura4](./Captura4.gif)
 
-# Volta – Powering Up Your Data
+# Volta: Reducing Errors in Automotive Assembly Lines with Applied Machine Learning
 
-Volta is an Industry 4.0 solution designed for an automotive company.
+## Context
 
----
+**Volta** is a real-world project based on automotive manufacturing data. It focuses on optimizing robotic operations in two key industrial stations of a battery assembly line:
 
-## Overview
+* **Station A (ST120)**: Battery module placement and screwing
+* **Station B (ST160)**: Insertion of electrical connectors between modules
 
-**Volta** leverages advanced data analytics and machine learning techniques to diagnose and optimize complex manufacturing processes. The project focuses on two main production stations (referred to as Station 120 and Station 160), where multiple groups of robots perform tasks such as battery placement, screwing, and material consumption. By capitalizing on data from various sensors and operational parameters (e.g., process time, torque, angle, and position), Volta aims to identify key factors that affect performance and to help the company reduce error rates (OK/NOK outcomes) while increasing throughput.
-
----
-
-## Key Components
-
-### 1. Process Overview
-
-- **Stations & Robot Groups**:  
-  - **Station 120**: Divided into three sub-stations (120.1, 120.2, 120.3) responsible for battery placement and associated tasks.
-  - **Station 160**: Consists of two sub-stations (160.1, 160.2) focused on connecting batteries and screwing operations.
-
-- **Critical Processes**:  
-  - **Placing**: Involves module positioning, placement of batteries, and coordination with subsequent screwing operations.
-  - **Screwing**: Involves applying torque and angle to fasten components. The analysis includes measuring actual values (AV) versus nominal (NV) and tolerance (lower tolerance [LT] and upper tolerance [UT]) thresholds.
-  - **Material Consumption & Other Variables**: Includes additional factors such as material consumption, environmental conditions (humidity, temperature), and total process time.
-
-### 2. Most Important Variables
-
-The analysis identified several key variables that impact process quality, including:
-- **Process Time & Duration**: Total duration for each station and individual process steps.
-- **Torque & Angle Measurements**: Critical for ensuring that screws are fastened correctly. Our analysis compares the actual values with predefined tolerance thresholds.
-- **Result Classification (OK/NOK)**: Each process is labeled as OK (successful) or NOK (failure), and the correlations between process variables and outcome are thoroughly examined.
-- **Additional Factors**: Variables like humidity, temperature, and material consumption also play a role in overall process performance.
-
-### 3. Objectives
-
-- **Increase Lower Tolerance**: Improve the process robustness by increasing the lower tolerance limits, ensuring more consistent quality.
-- **Reduce Upper Tolerance**: Decrease variability and prevent overshooting the desired operational thresholds.
-- **Optimize Process Efficiency**: Leverage insights from torque, angle, and positional data to fine-tune robotic operations, ultimately increasing productivity and reducing errors.
+Errors in early stages (positioning, torque, angle) directly impact later operations, leading to production failures (NOKs), rework, and throughput loss. Volta uses end-to-end analytics, interpretable machine learning, and time series modeling to detect causes and propose process improvements.
 
 ---
 
-## Methodology
+## Process Flow
 
-Our approach combines several analytical and machine learning techniques:
-- **Data Cleaning & Feature Engineering**:  
-  - Standardized column names, handled missing data, and converted timestamp data.
-  - Adjusted positional indexes to ensure consistency across processes.
-  
-- **Exploratory Data Analysis (EDA)**:  
-  - Created correlation matrices and visualizations (bar plots, scatter plots, histograms) to assess relationships between process variables.
-  - Analyzed OK/NOK distributions for both stations, using zoomed-in views for detailed insights.
-  
-- **Machine Learning & SHAP Analysis**:  
-  - Applied classification methods (using XGBoost) to predict process outcomes.
-  - Employed SHAP (SHapley Additive exPlanations) to interpret model predictions and identify the most influential features.
-  
-- **Clustering & Process Comparison**:  
-  - Conducted clustering analyses to segment process discrepancies, particularly focusing on differences in screw angles, torque, and positional variances.
-  - Compared performance between Station 120 and Station 160 to identify systematic differences and opportunities for process improvement.
+Every battery unit passes through:
+
+* **Placement (Station A)**: Robotic alignment of modules with precision in position and pressure
+* **Screwing (Station A)**: Controlled fastening of 45 screws using torque and angle parameters
+* **Connector Insertion (Station B)**: Placement of electrical connectors between 12 modules
+
+Operational specifics:
+
+* **2 robotic arms per line** (Robot 10 & Robot 20)
+* **3 production lines in parallel**, same configuration
+* Output from Station A is routed directly to Station B in continuous flow
 
 ---
 
-## Results & Insights
+## Data Preparation & Engineering
 
-- **Detailed Visualizations**:  
-  - Plots for both torque and angle distributions highlighted differences between OK and NOK outcomes.
-  - Zoomed visualizations enabled an in-depth focus on critical segments (e.g., the OK results for Station 160).
-  
-- **Process Diagnosis**:  
-  - Analysis revealed that deviations in angle and torque—when not within tolerance thresholds—are strongly linked to NOK outcomes.
-  - Comparative analysis between stations showed that Station 120 and Station 160 exhibit different process dynamics, suggesting tailored improvement strategies.
+* Cleaned and standardized over 1,200 raw process variables
+* Extracted and synced timestamps, calculated durations with ms precision
+* Mapped screw IDs to modules, robots, batteries
+* Engineered custom tolerances (UT/LT) based on statistical profiles of OK parts
 
-- **Business Impact**:  
-  - By identifying and addressing process variability, Volta helps improve product quality and reduces rework, ultimately saving costs and increasing plant throughput.
-  - The solution provides actionable insights for both immediate adjustments and long-term process upgrades.
+> Final output: 3 curated datasets (cleaned, denoised, and ML-ready)
+
+---
+
+## Root Cause & Statistical Analysis
+
+* Module-level failure heatmaps (NOK by screw position)
+* Time-segmented EDA to detect patterns in specific shifts or robots
+* Analyzed X/Y placement errors and their effect on connector fit
+* Robot-level performance comparison (R10 vs R20)
+
+> Connector-level analysis identified strong propagation of errors from Station A
+
+---
+
+## Time Series Forecasting with ETS
+
+To understand production flow dynamics and preempt anomalies, we implemented Exponential Smoothing (ETS) models:
+
+* Modeled screw durations and torque/angle patterns over time
+* Detected early indicators of drift or tool wear
+* Combined ETS outputs with NOK spikes to anticipate failures before they cascade
+
+This approach allowed us to introduce a temporal layer into the diagnosis, improving both explainability and prevention.
+
+---
+
+## ML Modeling & Interpretability
+
+Using **XGBoost** and **SHAP**, we:
+
+* Predicted NOK events from process variables in Station A
+* Ranked most influential features (misalignment, torque ratio, robot ID)
+* Simulated changes in tolerance boundaries and robot configurations
+
+> SHAP clearly highlighted compound effects (angle AND torque deviation required to trigger NOKs)
+
+---
+
+## Results & Business Impact
+
+* Reduced connector NOK rate in Station B by simulating tolerance adjustments upstream in Station A
+* Identified high-risk robot-screw combinations with >65% correlation to NOK events
+* Recovered over 8% of previously misclassified NOK cases through compound condition modeling (angle × torque)
+* Detected time-based drift in screwing performance using ETS
+* Estimated potential cost avoidance of **\~34,000€/month** from reduced rework and improved first-pass yield
+* Built reusable models with SHAP and ETS interpretability, enabling factory engineers to act on the findings
+
+> These results were validated with engineers in a production-like environment, confirming technical and operational feasibility.
+
+---
+
+## Visual Outputs
+
+* SHAP summary plots of feature importance (per screw and per robot)
+* Torque and angle distribution (NOK vs OK)
+* Temporal trends with ETS predictions and alerts
+* Dashboard-ready outputs for operational use
 
 ---
 
 ## Next Steps
 
-- **Refinement of Tolerance Levels**: Further fine-tune tolerance thresholds for torque and angle to better align with operational realities.
-- **Real-Time Monitoring**: Implement real-time dashboards for continuous process monitoring and adaptive control.
-- **Extended Analysis**: Expand the analysis to include additional variables (e.g., environmental factors) and integrate feedback loops to support continuous improvement.
+1. Validate optimized tolerances with live production data
+2. Integrate real-time alert system for torque-angle violations and ETS forecast deviations
+3. Extend pipeline to **Station C (ST100)** – thermal compound application
 
 ---
 
-## Conclusion
+## Repository Structure
 
-Volta demonstrates how advanced data analytics and machine learning can be applied to overcome obstacles in the automotive manufacturing process. By powering up your data, Volta not only identifies critical process inefficiencies but also provides a roadmap for operational excellence in an Industry 4.0 environment.
+```
+Volta/
+├── A. IT ST120 más limpio.py      # Full preprocessing pipeline for Station A
+├── Screwing 120.py                # Torque-angle analysis and NOK driver identification
+├── Position ST 120.py             # XY deviation, carrier force, time-based analysis
+├── st160.Bueno.py                 # Connector placement & NOK root cause analysis (Station B)
+├── st120_ML.xlsx                  # Final dataset (cleaned & engineered)
+└── README.md                      # This file
+```
+
+For project or technical details: [LinkedIn – Guillermo Rodríguez](https://www.linkedin.com/in/guillermo-rodriguez-vargas)
 
 ---
 
-This README serves as a high-level summary of the project, its methodology, key findings, and future directions. Enjoy exploring the power of data with Volta!
+Volta shows how applied ML, time series modeling, and structured analytics can optimize robotic stations, reduce operational waste, and enhance quality in real automotive manufacturing environments.
 
